@@ -34,7 +34,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();
 
-// CreateDbIfNoneExists(app);
+CreateDbIfNoneExists(app);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

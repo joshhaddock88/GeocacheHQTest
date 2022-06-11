@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace GeocacheSolution.Models
+﻿namespace GeocacheSolution.Models
 {
     public class Item
     {
-        [Key]
-        public int ItemId { get; set; }
+        public int ID { get; set; }
         public string Name { get; set; }
         public bool Active { get; set; }
-        public ActiveDates ActiveDates { get; set; }
+        public DateTime FirstActive { get; set; }
+        public DateTime LastActive { get; set; }
     }
 }
