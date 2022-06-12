@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GeocacheSolution.Migrations
 {
     [DbContext(typeof(GeocacheContext))]
-    [Migration("20220611064647_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20220611205756_StartOver")]
+    partial class StartOver
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -47,29 +47,6 @@ namespace GeocacheSolution.Migrations
                     b.ToTable("Geocache", (string)null);
                 });
 
-            modelBuilder.Entity("GeocacheSolution.Models.GeocacheItem", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
-
-                    b.Property<int>("GeocacheId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ItemId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("GeocacheId");
-
-                    b.HasIndex("ItemId");
-
-                    b.ToTable("GeocacheItem", (string)null);
-                });
-
             modelBuilder.Entity("GeocacheSolution.Models.Item", b =>
                 {
                     b.Property<int>("ID")
@@ -84,6 +61,9 @@ namespace GeocacheSolution.Migrations
                     b.Property<DateTime>("FirstActive")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("GeocacheId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("LastActive")
                         .HasColumnType("datetime2");
 
@@ -93,31 +73,23 @@ namespace GeocacheSolution.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("GeocacheId");
+
                     b.ToTable("Item", (string)null);
                 });
 
-            modelBuilder.Entity("GeocacheSolution.Models.GeocacheItem", b =>
+            modelBuilder.Entity("GeocacheSolution.Models.Item", b =>
                 {
-                    b.HasOne("GeocacheSolution.Models.Geocache", "Geocache")
-                        .WithMany("GeocacheItems")
+                    b.HasOne("GeocacheSolution.Models.Geocache", null)
+                        .WithMany("Items")
                         .HasForeignKey("GeocacheId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("GeocacheSolution.Models.Item", "Item")
-                        .WithMany()
-                        .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Geocache");
-
-                    b.Navigation("Item");
                 });
 
             modelBuilder.Entity("GeocacheSolution.Models.Geocache", b =>
                 {
-                    b.Navigation("GeocacheItems");
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

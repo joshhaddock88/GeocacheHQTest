@@ -36,6 +36,8 @@ namespace GeocacheSolution.Controllers
             }
 
             var geocache = await _context.Geocaches
+                .Include(g => g.Items)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (geocache == null)
             {
