@@ -75,6 +75,14 @@ namespace GeocacheSolution.Controllers
                             throw new DbUpdateException();
                         }
                     }
+                    if(item.GeocacheId > 0)
+                    {
+                        Geocache target = await _context.Geocaches.FindAsync(item.GeocacheId);
+                        if (target.Items != null && target.Items.Count >= 3)
+                        {
+                            throw new DbUpdateException();
+                        };
+                    }
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -179,6 +187,15 @@ namespace GeocacheSolution.Controllers
         private bool ItemExists(int id)
         {
           return (_context.Items?.Any(e => e.ID == id)).GetValueOrDefault();
+        }
+
+        private async void ValidateGeocacheItemNumber(Item item)
+        {
+            Geocache target = await _context.Geocaches.FindAsync(item.GeocacheId);
+            if (target.Items != null && target.Items.Count >= 3)
+            {
+                throw new DbUpdateException();
+            }
         }
     }
 }
