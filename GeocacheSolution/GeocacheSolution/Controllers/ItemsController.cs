@@ -68,7 +68,7 @@ namespace GeocacheSolution.Controllers
                     {
                         if(item.Name == i.Name)
                         {
-                            throw new DbUpdateException();
+                            throw new DbUpdateException("Name already exists. Item names must be unique.");
                         }
                     }
                     if(item.GeocacheId != null)
@@ -79,12 +79,8 @@ namespace GeocacheSolution.Controllers
                             .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
                         if (geocache.Items.Count >= 3)
                         {
-                            throw new DbUpdateException();
+                            throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
                         }
-                    }
-                    else
-                    {
-                        item.GeocacheId = null;
                     }
                     if ((item.LastActive.AddDays(30) < DateTime.Today))
                     {
@@ -95,14 +91,9 @@ namespace GeocacheSolution.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-/*            catch (DbUpdateException e)
+            catch (DbUpdateException e)
             {
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "One or more input fields received incorrect data.");
-            }*/
-            catch (Exception e)
-            {
-                throw;
+                ModelState.AddModelError("", $"{e.Message }");
             }
             return View(item);
         }
@@ -145,30 +136,30 @@ namespace GeocacheSolution.Controllers
                         item.Active = false;
                     }
                     await _context.SaveChangesAsync();
-                    if(item.GeocacheId != null)
+                    if (item.GeocacheId != null)
                     {
                         var geocacheMovedTo = await _context.Geocaches
                             .Include(g => g.Items)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
                         var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
-                        if(oldItemValues.GeocacheId != null)
+                        if (oldItemValues.GeocacheId != null)
                         {
                             var geocacheRemovedFrom = await _context.Geocaches
                                 .Include(g => g.Items)
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
-                                if (item.Active == false)
+                            if (item.Active == false)
+                            {
+                                if (item.GeocacheId != geocacheRemovedFrom.ID)
                                 {
-                                    if(item.GeocacheId != geocacheRemovedFrom.ID)
-                                    {
-                                        throw new DbUpdateException();
-                                    }
+                                    throw new DbUpdateException("Item is not inactive and therefore may not be moved.");
                                 }
-                            if(oldItemValues.GeocacheId != item.GeocacheId)
+                            }
+                            if (oldItemValues.GeocacheId != item.GeocacheId)
                                 if (geocacheMovedTo.Items.Count >= 3)
                                 {
-                                    throw new DbUpdateException();
+                                    throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
                                 }
                         }
 
@@ -188,10 +179,9 @@ namespace GeocacheSolution.Controllers
                         throw;
                     }
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException e)
                 {
-                    ModelState.AddModelError("", "Unable to save changes. " +
-                    "One or more of your input fields received incorrect data.");
+                    ModelState.AddModelError("", $"{e.Message}");
                 }
             }
             return View(item);
