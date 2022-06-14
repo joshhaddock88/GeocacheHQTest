@@ -71,13 +71,20 @@ namespace GeocacheSolution.Controllers
                             throw new DbUpdateException();
                         }
                     }
-                    var geocache = await _context.Geocaches
-                        .Include(g => g.Items)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                    if (geocache.Items.Count >= 3)
+                    if(item.GeocacheId != null)
                     {
-                        throw new DbUpdateException();
+                        var geocache = await _context.Geocaches
+                            .Include(g => g.Items)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                        if (geocache.Items.Count >= 3)
+                        {
+                            throw new DbUpdateException();
+                        }
+                    }
+                    else
+                    {
+                        item.GeocacheId = null;
                     }
                     if ((item.LastActive.AddDays(30) < DateTime.Today))
                     {
@@ -88,10 +95,14 @@ namespace GeocacheSolution.Controllers
                     return RedirectToAction(nameof(Index));
                 }
             }
-            catch (DbUpdateException e)
+/*            catch (DbUpdateException e)
             {
                 ModelState.AddModelError("", "Unable to save changes. " +
                     "One or more input fields received incorrect data.");
+            }*/
+            catch (Exception e)
+            {
+                throw;
             }
             return View(item);
         }
@@ -134,27 +145,34 @@ namespace GeocacheSolution.Controllers
                         item.Active = false;
                     }
                     await _context.SaveChangesAsync();
-                    var geocacheMovedTo = await _context.Geocaches
-                        .Include(g => g.Items)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                    var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
-                    var geocacheRemovedFrom = await _context.Geocaches
-                        .Include(g => g.Items)
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
-                    if (item.Active == false)
+                    if(item.GeocacheId != null)
                     {
-                        if(item.GeocacheId != geocacheRemovedFrom.ID)
+                        var geocacheMovedTo = await _context.Geocaches
+                            .Include(g => g.Items)
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                        var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
+                        if(oldItemValues.GeocacheId != null)
                         {
-                            throw new DbUpdateException();
+                            var geocacheRemovedFrom = await _context.Geocaches
+                                .Include(g => g.Items)
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
+                                if (item.Active == false)
+                                {
+                                    if(item.GeocacheId != geocacheRemovedFrom.ID)
+                                    {
+                                        throw new DbUpdateException();
+                                    }
+                                }
+                            if(oldItemValues.GeocacheId != item.GeocacheId)
+                                if (geocacheMovedTo.Items.Count >= 3)
+                                {
+                                    throw new DbUpdateException();
+                                }
                         }
+
                     }
-                    if(oldItemValues.GeocacheId != item.GeocacheId)
-                        if (geocacheMovedTo.Items.Count >= 3)
-                        {
-                            throw new DbUpdateException();
-                        }
                     _context.Update(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
