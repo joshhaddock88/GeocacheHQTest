@@ -13,7 +13,7 @@
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
+                <label asp-for="Name" class="control-label">Name(Must be unique)</label>
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
@@ -33,7 +33,8 @@
                 <span asp-validation-for="FirstActive" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="LastActive" class="control-label"></label>
+                <label asp-for="LastActive" class="control-label">Last Known Activity <br /> 
+                    Note: Items with no activity for 30 days will be rendered inactive.</label>
                 <input asp-for="LastActive" class="form-control" />
                 <span asp-validation-for="LastActive" class="text-danger"></span>
             </div>

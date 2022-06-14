@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,9 @@ namespace GeocacheSolution.Controllers
         // GET: Items
         public async Task<IActionResult> Index()
         {
-              return _context.Items != null ? 
+            return _context.Items != null ?
                           View(await _context.Items.ToListAsync()) :
-                          Problem("Entity set 'GeocacheContext.Items'  is null.");
+                          Problem("Entity set 'GeocacheContext.Geocaches'  is null.");
         }
 
         // GET: Items/Details/5
@@ -63,11 +64,6 @@ namespace GeocacheSolution.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    Regex rx = new Regex("^[A-Za-z 0-9]+$");
-                    if(!rx.IsMatch(item.Name))
-                    {
-                        throw new DbUpdateException();
-                    }
                     foreach (var i in _context.Items)
                     {
                         if(item.Name == i.Name)
@@ -75,15 +71,27 @@ namespace GeocacheSolution.Controllers
                             throw new DbUpdateException();
                         }
                     }
+                    var geocache = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                    if (geocache.Items.Count >= 3)
+                    {
+                        throw new DbUpdateException();
+                    }
+                    if ((item.LastActive.AddDays(30) < DateTime.Today))
+                    {
+                        item.Active = false;
+                    }
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
             }
-            catch (DbUpdateException /* ex */)
+            catch (DbUpdateException e)
             {
                 ModelState.AddModelError("", "Unable to save changes. " +
-                    "Make sure you are inputing correct data.");
+                    "One or more input fields received incorrect data.");
             }
             return View(item);
         }
@@ -120,8 +128,36 @@ namespace GeocacheSolution.Controllers
             {
                 try
                 {
+
+                    if ((item.LastActive.AddDays(30) < DateTime.Today))
+                    {
+                        item.Active = false;
+                    }
+                    await _context.SaveChangesAsync();
+                    var geocacheMovedTo = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                    var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
+                    var geocacheRemovedFrom = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
+                    if (item.Active == false)
+                    {
+                        if(item.GeocacheId != geocacheRemovedFrom.ID)
+                        {
+                            throw new DbUpdateException();
+                        }
+                    }
+                    if(oldItemValues.GeocacheId != item.GeocacheId)
+                        if (geocacheMovedTo.Items.Count >= 3)
+                        {
+                            throw new DbUpdateException();
+                        }
                     _context.Update(item);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -134,7 +170,11 @@ namespace GeocacheSolution.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                    "One or more of your input fields received incorrect data.");
+                }
             }
             return View(item);
         }

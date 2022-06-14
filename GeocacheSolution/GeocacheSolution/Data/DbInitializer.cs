@@ -33,15 +33,15 @@ namespace GeocacheSolution.Data
 
             var items = new Item[]
             {
-                new Item{Name="Original Can of Beans", Active=true, GeocacheId=1, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="Tin Case", Active=false, GeocacheId=1, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="Panda Figurine", Active=true, GeocacheId=3, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="Sunglasses", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="Silly Putty", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="A Shoe", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="A beautiful leaf", GeocacheId=7, Active=false, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="measuring tape", Active=true, GeocacheId=8, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now},
-                new Item{Name="A tomato timer", Active=true, GeocacheId=8, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Now}
+                new Item{Name="Original Can of Beans", Active=true, GeocacheId=1, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="Tin Case", Active=false, GeocacheId=1, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="Panda Figurine", Active=true, GeocacheId=3, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="Sunglasses", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="Silly Putty", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="A Shoe", Active=true, GeocacheId=4, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="A beautiful leaf", GeocacheId=7, Active=false, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="measuring tape", Active=true, GeocacheId=8, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today},
+                new Item{Name="A tomato timer", Active=true, GeocacheId=8, FirstActive=DateTime.Parse("2000-05-02"), LastActive=DateTime.Today}
             };
             foreach(Item i in items)
             {
