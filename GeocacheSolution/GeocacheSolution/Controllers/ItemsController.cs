@@ -24,9 +24,9 @@ namespace GeocacheSolution.Controllers
         // GET: Items
         public async Task<IActionResult> Index()
         {
-              return _context.Items != null ? 
+            return _context.Items != null ?
                           View(await _context.Items.ToListAsync()) :
-                          Problem("Entity set 'GeocacheContext.Items'  is null.");
+                          Problem("Entity set 'GeocacheContext.Geocaches'  is null.");
         }
 
         // GET: Items/Details/5
@@ -71,21 +71,27 @@ namespace GeocacheSolution.Controllers
                             throw new DbUpdateException();
                         }
                     }
-                    var target = await _context.Geocaches.FindAsync(item.GeocacheId);
-                    if(target.ItemCount >= 3)
+                    var geocache = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                    if (geocache.Items.Count >= 3)
                     {
                         throw new DbUpdateException();
                     }
-                    target.ItemCount++;
+                    if ((item.LastActive.AddDays(30) < DateTime.Today))
+                    {
+                        item.Active = false;
+                    }
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException e)
             {
                 ModelState.AddModelError("", "Unable to save changes. " +
-                    "Make sure you are inputing correct data.");
+                    "One or more input fields received incorrect data.");
             }
             return View(item);
         }
@@ -122,22 +128,33 @@ namespace GeocacheSolution.Controllers
             {
                 try
                 {
-                    var geocacheMovedTo = await _context.Geocaches.FindAsync(item.GeocacheId);
-                    if (geocacheMovedTo.ItemCount >= 3)
+
+                    if ((item.LastActive.AddDays(30) < DateTime.Today))
                     {
-                        throw new DbUpdateException();
+                        item.Active = false;
                     }
-                    geocacheMovedTo.ItemCount++;
-                    int oldGeoCacheId = 0;
-                    foreach(var i in _context.Items)
+                    await _context.SaveChangesAsync();
+                    var geocacheMovedTo = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                    var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
+                    var geocacheRemovedFrom = await _context.Geocaches
+                        .Include(g => g.Items)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
+                    if (item.Active == false)
                     {
-                        if (item.Name == i.Name)
+                        if(item.GeocacheId != geocacheRemovedFrom.ID)
                         {
-                            oldGeoCacheId = i.GeocacheId;
+                            throw new DbUpdateException();
                         }
                     }
-                    var geocacheRemovedFrom = await _context.Geocaches.FindAsync(oldGeoCacheId);
-                    geocacheRemovedFrom.ItemCount--;
+                    if(oldItemValues.GeocacheId != item.GeocacheId)
+                        if (geocacheMovedTo.Items.Count >= 3)
+                        {
+                            throw new DbUpdateException();
+                        }
                     _context.Update(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -156,7 +173,7 @@ namespace GeocacheSolution.Controllers
                 catch (DbUpdateException)
                 {
                     ModelState.AddModelError("", "Unable to save changes. " +
-                    "Make sure you are inputing correct data.");
+                    "One or more of your input fields received incorrect data.");
                 }
             }
             return View(item);
@@ -203,31 +220,5 @@ namespace GeocacheSolution.Controllers
         {
           return (_context.Items?.Any(e => e.ID == id)).GetValueOrDefault();
         }
-
-        private bool ValidateGeocacheItemNumber(Geocache target)
-        {     
-            if (target.Items != null && target.Items.Count >= 3) { return false; }
-            else { return true; }
-        }
-
-        public async void MoveItem(Item item)
-        {
-            try
-            {
-                var target = await _context.Geocaches.FindAsync(item.GeocacheId);
-                if(target.ItemCount >= 3)
-                {
-                    throw new DbUpdateException();
-                }
-                target.ItemCount++;
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "Unable to save changes. " +
-                    "Geocache is full.");
-            }
-        }
-
-        
     }
 }

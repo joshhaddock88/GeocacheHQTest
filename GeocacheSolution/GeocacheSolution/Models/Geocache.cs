@@ -12,6 +12,5 @@ namespace GeocacheSolution.Models
         [Required]
         public double Long { get; set; }
         public ICollection<Item> Items { get; set; }
-        public int ItemCount { get; set; }
     }
 }

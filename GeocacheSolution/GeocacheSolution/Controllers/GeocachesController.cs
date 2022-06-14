@@ -43,6 +43,13 @@ namespace GeocacheSolution.Controllers
             {
                 return NotFound();
             }
+            foreach(Item item in geocache.Items)
+            {
+                if(item.Active == false)
+                {
+                    geocache.Items.Remove(item);
+                }
+            }
 
             return View(geocache);
         }
