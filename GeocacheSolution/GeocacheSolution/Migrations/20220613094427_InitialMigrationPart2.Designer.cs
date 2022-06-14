@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GeocacheSolution.Migrations
 {
     [DbContext(typeof(GeocacheContext))]
-    [Migration("20220613052622_StillFixingBugs")]
-    partial class StillFixingBugs
+    [Migration("20220613094427_InitialMigrationPart2")]
+    partial class InitialMigrationPart2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,6 +31,9 @@ namespace GeocacheSolution.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
+
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("int");
 
                     b.Property<double>("Lat")
                         .HasColumnType("float");

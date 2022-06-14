@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GeocacheSolution.Migrations
 {
-    public partial class StartOver : Migration
+    public partial class InitialMigrationPart2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,7 +17,8 @@ namespace GeocacheSolution.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Lat = table.Column<double>(type: "float", nullable: false),
-                    Long = table.Column<double>(type: "float", nullable: false)
+                    Long = table.Column<double>(type: "float", nullable: false),
+                    ItemCount = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

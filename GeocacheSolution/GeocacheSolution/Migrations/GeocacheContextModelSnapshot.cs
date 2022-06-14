@@ -30,6 +30,9 @@ namespace GeocacheSolution.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
+                    b.Property<int>("ItemCount")
+                        .HasColumnType("int");
+
                     b.Property<double>("Lat")
                         .HasColumnType("float");
 
