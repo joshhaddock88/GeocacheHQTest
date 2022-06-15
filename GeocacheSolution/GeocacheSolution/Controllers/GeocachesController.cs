@@ -110,6 +110,7 @@ namespace GeocacheSolution.Controllers
                 {
                     _context.Update(geocache);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -122,7 +123,6 @@ namespace GeocacheSolution.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(geocache);
         }

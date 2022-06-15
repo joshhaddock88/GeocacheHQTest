@@ -65,22 +65,24 @@ namespace GeocacheSolution.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    foreach (var i in _context.Items)
+                    var itemNames = await _context.Items.Select(i => i.Name).AsNoTracking().ToListAsync();
+                    if(itemNames.Contains(item.Name))
                     {
-                        if(item.Name == i.Name)
-                        {
-                            throw new DbUpdateException("Name already exists. Item names must be unique.");
-                        }
+                        throw new DbUpdateException("Name already exists. Item names must be unique.");
                     }
-                    if(item.GeocacheId != null)
+                    item.Active = CheckIfActive(item.LastActive, item.Active);
+                    if (item.GeocacheId != null)
                     {
+                        if(item.Active == false)
+                        {
+                            throw new DbUpdateException("Item is not active and therefore can not be placed in Geocache. Check last known activity.");
+                        }
                         var geocache = await _context.Geocaches
                             .Include(g => g.Items)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
                         CheckForSpaceInGeocache(geocache.Items.Count);
                     }
-                    item.Active = CheckIfActive(item.LastActive, item.Active);
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -125,11 +127,7 @@ namespace GeocacheSolution.Controllers
             {
                 try
                 {
-
-                    //Validate that item was active in last 30 days.
                     item.Active = CheckIfActive(item.LastActive, item.Active);
-                    // await _context.SaveChangesAsync(); < I don't think I need this.
-                    // Validate that we are assigning geocache to a value.
                     if (item.GeocacheId != null)
                     {
                         var geocacheMovedTo = await _context.Geocaches
@@ -139,19 +137,11 @@ namespace GeocacheSolution.Controllers
                         var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
                         if (oldItemValues.GeocacheId != null)
                         {
-                            var geocacheRemovedFrom = await _context.Geocaches
-                                .Include(g => g.Items)
-                                .AsNoTracking()
-                                .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
-                            // Stops inactive items from being moved.
-                            if (item.Active == false)
+                            if (item.Active == false && item.GeocacheId != oldItemValues.GeocacheId)
                             {
-                                if (item.GeocacheId != geocacheRemovedFrom.ID)
-                                {
-                                    throw new DbUpdateException("Item is not active and therefore may not be moved.");
-                                }
+                                throw new DbUpdateException("Item is not active and therefore may not be moved.");
                             }
-                            if (oldItemValues.GeocacheId != item.GeocacheId)
+                            else if (oldItemValues.GeocacheId != item.GeocacheId)
                             {
                                 CheckForSpaceInGeocache(geocacheMovedTo.Items.Count);
                             }
