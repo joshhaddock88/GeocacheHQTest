@@ -15,6 +15,7 @@ namespace GeocacheSolution.Controllers
     public class ItemsController : Controller
     {
         private readonly GeocacheContext _context;
+        private readonly string fullCache = "";
 
         public ItemsController(GeocacheContext context)
         {
@@ -77,15 +78,9 @@ namespace GeocacheSolution.Controllers
                             .Include(g => g.Items)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                        if (geocache.Items.Count >= 3)
-                        {
-                            throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
-                        }
+                        CheckForSpaceInGeocache(geocache.Items.Count);
                     }
-                    if ((item.LastActive.AddDays(30) < DateTime.Today))
-                    {
-                        item.Active = false;
-                    }
+                    item.Active = CheckIfActive(item.LastActive, item.Active);
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -131,11 +126,10 @@ namespace GeocacheSolution.Controllers
                 try
                 {
 
-                    if ((item.LastActive.AddDays(30) < DateTime.Today))
-                    {
-                        item.Active = false;
-                    }
-                    await _context.SaveChangesAsync();
+                    //Validate that item was active in last 30 days.
+                    item.Active = CheckIfActive(item.LastActive, item.Active);
+                    // await _context.SaveChangesAsync(); < I don't think I need this.
+                    // Validate that we are assigning geocache to a value.
                     if (item.GeocacheId != null)
                     {
                         var geocacheMovedTo = await _context.Geocaches
@@ -149,18 +143,26 @@ namespace GeocacheSolution.Controllers
                                 .Include(g => g.Items)
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(m => m.ID == oldItemValues.GeocacheId);
+                            // Stops inactive items from being moved.
                             if (item.Active == false)
                             {
                                 if (item.GeocacheId != geocacheRemovedFrom.ID)
                                 {
-                                    throw new DbUpdateException("Item is not inactive and therefore may not be moved.");
+                                    throw new DbUpdateException("Item is not active and therefore may not be moved.");
                                 }
                             }
                             if (oldItemValues.GeocacheId != item.GeocacheId)
-                                if (geocacheMovedTo.Items.Count >= 3)
-                                {
-                                    throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
-                                }
+                            {
+                                CheckForSpaceInGeocache(geocacheMovedTo.Items.Count);
+                            }
+                        }
+                        else
+                        {
+                            if (item.Active == false)
+                            {
+                                throw new DbUpdateException("Item is not active and therefore may not be moved.");
+                            }
+                            CheckForSpaceInGeocache(geocacheMovedTo.Items.Count);
                         }
 
                     }
@@ -227,6 +229,23 @@ namespace GeocacheSolution.Controllers
         private bool ItemExists(int id)
         {
           return (_context.Items?.Any(e => e.ID == id)).GetValueOrDefault();
+        }
+
+        private void CheckForSpaceInGeocache(int count)
+        {
+            if (count >= 3)
+            {
+                throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
+            }
+        }
+
+        private bool CheckIfActive(DateTime lastActive, bool currentState)
+        {
+            if ((lastActive.AddDays(30) < DateTime.Today))
+            {
+                return false;
+            }
+            return currentState;
         }
     }
 }
