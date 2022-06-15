@@ -1,6 +1,6 @@
 # GeocacheHQTest
 
-> This project was created as part of a skills assessment test for GeocachingHQ. In it a have created a data source that contains of list of geocache objects, and a list of items that can be placed inside of the geocaches.
+> This project was created as part of a skills assessment test for GeocachingHQ. This project is a data source built using Entity Framework Core and MVC architecture in .NET6.0.
 
 ## Table of Contents
 
@@ -18,25 +18,21 @@
 
 ## General Information
 
-* Provide general information about your project here.
-* What problem does it (intend to) solve?
-* What is the purpose of your project?
-* Why did you undertake it?
-<!-- You don't have to answer all the questions - just the ones relevant to your project. -->
+* This is an API used to simulate a basic RESTful geocaching API. In it the user is able to add a geocache to the database with name and cordinate properties. They will also be able to add item objects to the database and assign those items to a specific cache.
+* This application allows a user to store geocache objects and their associated items. It also puts limits on the number of items with a specific geocache. Each geocache has a collection of active items that belong to it, and will update it's collection as items are moved from one geocache to another. If an item become inactive, the geocache will automatically remove that item from it's collection.
+* The purpose of this project was to demostrate competency with database architecture and functionality.
 
 ## Technologies Used
 
-* Tech 1 - version 1.0
-* Tech 2 - version 2.0
-* Tech 3 - version 3.0
+* Entity Framework Core
+* ASP.NET6.0
+* Visual Studio 2022
 
 ## Features
 
-List the ready features here:
-
-* Awesome feature 1
-* Awesome feature 2
-* Awesome feature 3
+* Simple, bootstrapped view, allowing for easy access to data and testing functionality.
+* Takes advantage of collections to automatically update item counts within each cache.
+* Items automatically become inactive a set number of days after their last activity.
 
 ## Screenshots
 
@@ -45,16 +41,13 @@ List the ready features here:
 
 ## Setup
 
-What are the project requirements/dependencies? Where are they listed? A requirements.txt or a Pipfile.lock file perhaps? Where is it located?
+Project must be run in ASP.NET6.0 using Visual Studio 2022.
+Install the following packages before starting:
 
-Proceed to describe how to install / setup one's local environment / get started with the project.
-
-## Usage
-
-How does one go about using it?
-Provide various use cases and code examples here.
-
-`write-your-code-here`
+* MicrosoftAspNetCore.Diagnostics.EntityFrameworkCore
+* Microsoft.EntityFrameworkCore
+* Microsoft.EnttiyFrameworkCore.SqlServer
+* Microsoft.EntityFrameworkCore.Tools
 
 ## Project Status
 
@@ -85,7 +78,3 @@ Give credit here.
 ## Contact
 
 Created by [Joshua Haddock](https://www.linkedin.com/in/joshuahaddock/) - feel free to contact me!
-
-## License
-
-This project is open source and available under the [MIT License](./LICENSE).
