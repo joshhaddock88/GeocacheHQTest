@@ -61,7 +61,7 @@ namespace GeocacheSolution.Controllers
 
         // PUT: api/Geocaches/1
         [HttpPut("{id}")]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Lat,Long")] Geocache geocache)
+        public async Task<ActionResult> PutGeocache(int id, Geocache geocache)
         {
             if (id != geocache.ID)
             {
@@ -75,7 +75,7 @@ namespace GeocacheSolution.Controllers
 
         // DELETE: api/Geocaches/1
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<ActionResult<Geocache>> DeleteGeocache(int id)
         {
             var geocache = await _context.Geocaches.FindAsync(id);
             if (geocache != null)
@@ -85,11 +85,6 @@ namespace GeocacheSolution.Controllers
             
             await _context.SaveChangesAsync();
             return NoContent();
-        }
-
-        private bool GeocacheExists(int id)
-        {
-          return (_context.Geocaches?.Any(e => e.ID == id)).GetValueOrDefault();
         }
     }
 }
