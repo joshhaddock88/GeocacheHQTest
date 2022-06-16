@@ -7,23 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-static void CreateDbIfNoneExists(IHost app)
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        try
-        {
-            var context = services.GetRequiredService<GeocacheContext>();
-            DbInitializer.Initialize(context);
-        }
-        catch (Exception e)
-        {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(e, "An Error occured creating the DB");
-        }
-    }
-}
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -41,6 +24,24 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+static void CreateDbIfNoneExists(IHost app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<GeocacheContext>();
+            DbInitializer.Initialize(context);
+        }
+        catch (Exception e)
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogError(e, "An Error occured creating the DB");
+        }
+    }
+}
 
 CreateDbIfNoneExists(app);
 
