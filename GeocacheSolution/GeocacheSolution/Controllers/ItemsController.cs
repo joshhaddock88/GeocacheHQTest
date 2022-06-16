@@ -4,11 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GeocacheSolution.Data;
 using GeocacheSolution.Models;
-using System.Text.RegularExpressions;
 
 namespace GeocacheSolution.Controllers
 {
@@ -30,7 +28,7 @@ namespace GeocacheSolution.Controllers
             return await _context.Items.ToListAsync();
         }
 
-        // GET: Items/Details/5
+        // GET: Items/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Item>> GetItem(int id)
         {
@@ -64,7 +62,7 @@ namespace GeocacheSolution.Controllers
                     .Include(g => g.Items)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                if (CheckForSpaceInGeocache(geocache.Items.Count))
+                if (GeocacheHasSpace(geocache.Items.Count) == false)
                 {
                     return BadRequest("Target geocache is full");
                 }
@@ -99,7 +97,7 @@ namespace GeocacheSolution.Controllers
                     }
                     else if (oldItemValues.GeocacheId != item.GeocacheId)
                     {
-                        if(CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                        if(GeocacheHasSpace(geocacheMovedTo.Items.Count) == false)
                         {
                             return BadRequest("Target geocache is full");
                         }
@@ -111,7 +109,7 @@ namespace GeocacheSolution.Controllers
                     {
                         return BadRequest("Item is not active and therefore may not be moved.");
                     }
-                    if (CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                    if (GeocacheHasSpace(geocacheMovedTo.Items.Count) == false)
                     {
                         return BadRequest("Target geocache is full");
                     }
@@ -123,7 +121,7 @@ namespace GeocacheSolution.Controllers
             return Ok(item);
         }
 
-    // DELETE: Items/Delete/5
+    // DELETE: Items/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Item>> DeleteItem(int id)
         {
@@ -136,7 +134,7 @@ namespace GeocacheSolution.Controllers
             return NoContent();
         }
 
-        private bool CheckForSpaceInGeocache(int count)
+        private bool GeocacheHasSpace(int count)
         {
             if (count >= 3) { return false; }
             else { return true; }

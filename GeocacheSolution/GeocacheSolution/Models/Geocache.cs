@@ -8,7 +8,6 @@ namespace GeocacheSolution.Models
         [Required]
         public string Name { get; set; }
         [Required]
-        [RegularExpression(@"\d+(\.\d{1,4})?", ErrorMessage = "Too many decimal spaces.")]
         public double Lat { get; set; }
         [Required]
         public double Long { get; set; }
