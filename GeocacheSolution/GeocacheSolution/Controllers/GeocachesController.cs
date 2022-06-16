@@ -10,6 +10,8 @@ using GeocacheSolution.Models;
 
 namespace GeocacheSolution.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class GeocachesController : Controller
     {
         private readonly GeocacheContext _context;
@@ -21,24 +23,17 @@ namespace GeocacheSolution.Controllers
 
         // GET: Geocaches
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<ActionResult<IEnumerable<Geocache>>> GetItems()
         {
-              return _context.Geocaches != null ? 
-                          View(await _context.Geocaches.ToListAsync()) :
-                          Problem("Entity set 'GeocacheContext.Geocaches'  is null.");
+            return await _context.Geocaches.ToListAsync();
         }
 
-        // GET: Geocaches/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: Geocaches/1
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Geocache>> GetGeocache(int id)
         {
-            if (id == null || _context.Geocaches == null)
-            {
-                return NotFound();
-            }
-
             var geocache = await _context.Geocaches
                 .Include(g => g.Items)
-                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (geocache == null)
             {
@@ -52,105 +47,36 @@ namespace GeocacheSolution.Controllers
                 }
             }
 
-            return View(geocache);
+            return geocache;
         }
 
-        // GET: Geocaches/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Geocaches/Create
+        // POST: api/Geocaches
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Name,Lat,Long")] Geocache geocache)
+        public async Task<ActionResult<Geocache>> PostGeocache(Geocache geocache)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(geocache);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(geocache);
+            _context.Add(geocache);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetGeocache", new { id = geocache.ID}, geocache);
         }
 
-        // GET: Geocaches/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Geocaches == null)
-            {
-                return BadRequest();
-            }
-
-            var geocache = await _context.Geocaches.FindAsync(id);
-            if (geocache == null)
-            {
-                return Conflict();
-            }
-            return View(geocache);
-        }
-
-        // POST: Geocaches/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // PUT: api/Geocaches/1
+        [HttpPut("{id}")]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Lat,Long")] Geocache geocache)
         {
             if (id != geocache.ID)
             {
-                return NotFound();
+                return BadRequest("ID does not match a known cache.");
             }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(geocache);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!GeocacheExists(geocache.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            }
-            return View(geocache);
+            
+            _context.Update(geocache);
+            await _context.SaveChangesAsync();
+            return Ok(geocache);
         }
 
-        // GET: Geocaches/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Geocaches == null)
-            {
-                return NotFound();
-            }
-
-            var geocache = await _context.Geocaches
-                .FirstOrDefaultAsync(m => m.ID == id);
-            if (geocache == null)
-            {
-                return NotFound();
-            }
-
-            return View(geocache);
-        }
-
-        // POST: Geocaches/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
+        // DELETE: api/Geocaches/1
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Geocaches == null)
-            {
-                return Problem("Entity set 'GeocacheContext.Geocaches'  is null.");
-            }
             var geocache = await _context.Geocaches.FindAsync(id);
             if (geocache != null)
             {
@@ -158,7 +84,7 @@ namespace GeocacheSolution.Controllers
             }
             
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return NoContent();
         }
 
         private bool GeocacheExists(int id)
