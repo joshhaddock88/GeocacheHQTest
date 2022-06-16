@@ -31,6 +31,14 @@ builder.Services.AddDbContext<GeocacheContext>(options => options.UseSqlServer(
     builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo()
+    {
+        Title = "Geocache Test API",
+        Version = "v1"
+    });
+});
 
 var app = builder.Build();
 
@@ -47,12 +55,26 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseSwagger(options =>
+{
+    options.RouteTemplate = "/api/{documentName}/swagger.json";
+});
+
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/api/v1/swagger.json", "Geocache API Testing Visual");
+    options.RoutePrefix = "";
+});
+
 app.UseRouting();
 
-app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+    endpoints.MapGet("/", async context =>
+    {
+        await context.Response.WriteAsync("Welcome to Geocache Test API!");
+    });
+});
 
 app.Run();
