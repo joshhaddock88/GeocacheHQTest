@@ -10,12 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GeocacheTests
 {
-    public class Mock : IDisposable
+    public class MockDb : IDisposable
     {
         public readonly SqliteConnection _connection;
         public readonly GeocacheContext _context;
 
-        public Mock()
+        public MockDb()
         {
             _connection = new SqliteConnection("Filename=:memory:");
             _connection.Open();
