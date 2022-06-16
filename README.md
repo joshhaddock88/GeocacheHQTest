@@ -8,13 +8,10 @@
 * [Technologies Used](#technologies-used)
 * [Features](#features)
 * [Approach](#approach)
+* [Other Notes](#other-notes)
 * [Setup](#setup)
-* [Usage](#usage)
-* [Project Status](#project-status)
-* [Room for Improvement](#room-for-improvement)
 * [Acknowledgements](#acknowledgements)
 * [Contact](#contact)
-* [License](#license)
 
 ## General Information
 
@@ -81,8 +78,8 @@ Install the following packages before starting:
 
 ## Acknowledgements
 
-My friends and coworkers who put up with my absence over the last week.
-Also the Microsoft Web Api [Documention](https://docs.microsoft.com/en-us/aspnet/core/?view=aspnetcore-6.0) and tutorials were invaluable. 
+My friends and coworkers who put up with my absence over the last week.  
+The Microsoft Web Api [Documention](https://docs.microsoft.com/en-us/aspnet/core/?view=aspnetcore-6.0) and tutorials were invaluable.
 
 ## Contact
 
