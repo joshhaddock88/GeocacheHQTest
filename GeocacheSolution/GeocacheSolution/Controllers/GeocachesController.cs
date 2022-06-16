@@ -20,6 +20,7 @@ namespace GeocacheSolution.Controllers
         }
 
         // GET: Geocaches
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
               return _context.Geocaches != null ? 
@@ -61,8 +62,6 @@ namespace GeocacheSolution.Controllers
         }
 
         // POST: Geocaches/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,Lat,Long")] Geocache geocache)
@@ -81,20 +80,18 @@ namespace GeocacheSolution.Controllers
         {
             if (id == null || _context.Geocaches == null)
             {
-                return NotFound();
+                return BadRequest();
             }
 
             var geocache = await _context.Geocaches.FindAsync(id);
             if (geocache == null)
             {
-                return NotFound();
+                return Conflict();
             }
             return View(geocache);
         }
 
         // POST: Geocaches/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Lat,Long")] Geocache geocache)
