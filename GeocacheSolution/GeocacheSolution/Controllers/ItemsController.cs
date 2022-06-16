@@ -12,10 +12,11 @@ using System.Text.RegularExpressions;
 
 namespace GeocacheSolution.Controllers
 {
+    [Route("api/[controller]")]
+    [ApiController]
     public class ItemsController : Controller
     {
         private readonly GeocacheContext _context;
-        private readonly string fullCache = "";
 
         public ItemsController(GeocacheContext context)
         {
@@ -23,218 +24,127 @@ namespace GeocacheSolution.Controllers
         }
 
         // GET: Items
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Item>>> GetItems()
         {
-            return _context.Items != null ?
-                          View(await _context.Items.ToListAsync()) :
-                          Problem("Entity set 'GeocacheContext.Geocaches'  is null.");
+            return await _context.Items.ToListAsync();
         }
 
         // GET: Items/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Item>> GetItem(int id)
         {
-            if (id == null || _context.Items == null)
-            {
-                return NotFound();
-            }
-
-            var item = await _context.Items
-                .FirstOrDefaultAsync(m => m.ID == id);
-            if (item == null)
-            {
-                return NotFound();
-            }
-
-            return View(item);
-        }
-
-        // GET: Items/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Items/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Active,GeocacheId,FirstActive,LastActive")] Item item)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var itemNames = await _context.Items.Select(i => i.Name).AsNoTracking().ToListAsync();
-                    if(itemNames.Contains(item.Name))
-                    {
-                        throw new DbUpdateException("Name already exists. Item names must be unique.");
-                    }
-                    item.Active = CheckIfActive(item.LastActive, item.Active);
-                    if (item.GeocacheId != null)
-                    {
-                        if(item.Active == false)
-                        {
-                            throw new DbUpdateException("Item is not active and therefore can not be placed in Geocache. Check last known activity.");
-                        }
-                        var geocache = await _context.Geocaches
-                            .Include(g => g.Items)
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                        CheckForSpaceInGeocache(geocache.Items.Count);
-                    }
-                    _context.Add(item);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-            catch (DbUpdateException e)
-            {
-                ModelState.AddModelError("", $"{e.Message }");
-            }
-            return View(item);
-        }
-
-        // GET: Items/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Items == null)
-            {
-                return NotFound();
-            }
-
             var item = await _context.Items.FindAsync(id);
             if (item == null)
             {
                 return NotFound();
             }
-            return View(item);
+
+            return item;
         }
 
-        // POST: Items/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: api/Items
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Name,Active,GeocacheId,FirstActive,LastActive")] Item item)
+        public async Task<ActionResult<Item>> PostItem(Item item)
         {
-            if (id != item.ID)
+
+            var itemNames = await _context.Items.Select(i => i.Name).AsNoTracking().ToListAsync();
+            if (itemNames.Contains(item.Name))
             {
-                return NotFound();
+                return BadRequest("Name already exists. Item names must be unique.");
             }
-
-            if (ModelState.IsValid)
+            item.Active = CheckIfActive(item.LastActive, item.Active);
+            if (item.GeocacheId != null)
             {
-                try
+                if (item.Active == false)
                 {
-                    item.Active = CheckIfActive(item.LastActive, item.Active);
-                    if (item.GeocacheId != null)
-                    {
-                        var geocacheMovedTo = await _context.Geocaches
-                            .Include(g => g.Items)
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                        var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
-                        if (oldItemValues.GeocacheId != null)
-                        {
-                            if (item.Active == false && item.GeocacheId != oldItemValues.GeocacheId)
-                            {
-                                throw new DbUpdateException("Item is not active and therefore may not be moved.");
-                            }
-                            else if (oldItemValues.GeocacheId != item.GeocacheId)
-                            {
-                                CheckForSpaceInGeocache(geocacheMovedTo.Items.Count);
-                            }
-                        }
-                        else
-                        {
-                            if (item.Active == false)
-                            {
-                                throw new DbUpdateException("Item is not active and therefore may not be moved.");
-                            }
-                            CheckForSpaceInGeocache(geocacheMovedTo.Items.Count);
-                        }
-
-                    }
-                    _context.Update(item);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return BadRequest("Item is not active and therefore can not be placed in Geocache. Check last known activity.");
                 }
-                catch (DbUpdateConcurrencyException)
+                var geocache = await _context.Geocaches
+                    .Include(g => g.Items)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                if (CheckForSpaceInGeocache(geocache.Items.Count))
                 {
-                    if (!ItemExists(item.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                catch (DbUpdateException e)
-                {
-                    ModelState.AddModelError("", $"{e.Message}");
+                    return BadRequest("Target geocache is full");
                 }
             }
-            return View(item);
+            _context.Add(item);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("GetItem", new { id = item.ID }, item);
         }
 
-        // GET: Items/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        // PUT: api/Items
+        [HttpPut("{id}")]
+        public async Task<ActionResult> PutItem(int id, Item item)
         {
-            if (id == null || _context.Items == null)
+           
+            if(id != item.ID)
             {
-                return NotFound();
+                return BadRequest("ID does not match.");
             }
-
-            var item = await _context.Items
-                .FirstOrDefaultAsync(m => m.ID == id);
-            if (item == null)
+            item.Active = CheckIfActive(item.LastActive, item.Active);
+            if (item.GeocacheId != null)
             {
-                return NotFound();
-            }
+                var geocacheMovedTo = await _context.Geocaches
+                    .Include(g => g.Items)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
+                var oldItemValues = await _context.Items.AsNoTracking().FirstOrDefaultAsync(m => m.ID == id);
+                if (oldItemValues.GeocacheId != null)
+                {
+                    if (item.Active == false && item.GeocacheId != oldItemValues.GeocacheId)
+                    {
+                        return BadRequest("Item is not active and therefore may not be moved.");
+                    }
+                    else if (oldItemValues.GeocacheId != item.GeocacheId)
+                    {
+                        if(CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                        {
+                            return BadRequest("Target geocache is full");
+                        }
+                    }
+                }
+                else
+                {
+                    if (item.Active == false)
+                    {
+                        return BadRequest("Item is not active and therefore may not be moved.");
+                    }
+                    if (CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                    {
+                        return BadRequest("Target geocache is full");
+                    }
+                }
 
-            return View(item);
+            }
+            _context.Update(item);
+            await _context.SaveChangesAsync();
+            return Ok(item);
         }
 
-        // POST: Items/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+    // DELETE: Items/Delete/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Item>> DeleteItem(int id)
         {
-            if (_context.Items == null)
-            {
-                return Problem("Entity set 'GeocacheContext.Items'  is null.");
-            }
             var item = await _context.Items.FindAsync(id);
             if (item != null)
             {
                 _context.Items.Remove(item);
             }
-            
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return NoContent();
         }
 
-        private bool ItemExists(int id)
+        private bool CheckForSpaceInGeocache(int count)
         {
-          return (_context.Items?.Any(e => e.ID == id)).GetValueOrDefault();
-        }
-
-        private void CheckForSpaceInGeocache(int count)
-        {
-            if (count >= 3)
-            {
-                throw new DbUpdateException("Target geocache is already full. Choose another ID or leave field empty.");
-            }
+            if (count >= 3) { return false; }
+            else { return true; }
         }
 
         private bool CheckIfActive(DateTime lastActive, bool currentState)
         {
-            if ((lastActive.AddDays(30) < DateTime.Today))
-            {
-                return false;
-            }
+            if ((lastActive.AddDays(30) < DateTime.Today)) { return false; }
             return currentState;
         }
     }
