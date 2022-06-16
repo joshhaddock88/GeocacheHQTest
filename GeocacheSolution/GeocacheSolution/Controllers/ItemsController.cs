@@ -64,7 +64,7 @@ namespace GeocacheSolution.Controllers
                     .Include(g => g.Items)
                     .AsNoTracking()
                     .FirstOrDefaultAsync(m => m.ID == item.GeocacheId);
-                if (CheckForSpaceInGeocache(geocache.Items.Count))
+                if (GeocacheHasSpace(geocache.Items.Count) == false)
                 {
                     return BadRequest("Target geocache is full");
                 }
@@ -99,7 +99,7 @@ namespace GeocacheSolution.Controllers
                     }
                     else if (oldItemValues.GeocacheId != item.GeocacheId)
                     {
-                        if(CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                        if(GeocacheHasSpace(geocacheMovedTo.Items.Count) == false)
                         {
                             return BadRequest("Target geocache is full");
                         }
@@ -111,7 +111,7 @@ namespace GeocacheSolution.Controllers
                     {
                         return BadRequest("Item is not active and therefore may not be moved.");
                     }
-                    if (CheckForSpaceInGeocache(geocacheMovedTo.Items.Count))
+                    if (GeocacheHasSpace(geocacheMovedTo.Items.Count) == false)
                     {
                         return BadRequest("Target geocache is full");
                     }
@@ -136,7 +136,7 @@ namespace GeocacheSolution.Controllers
             return NoContent();
         }
 
-        private bool CheckForSpaceInGeocache(int count)
+        private bool GeocacheHasSpace(int count)
         {
             if (count >= 3) { return false; }
             else { return true; }
