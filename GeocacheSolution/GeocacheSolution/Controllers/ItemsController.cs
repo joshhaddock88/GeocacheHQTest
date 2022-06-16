@@ -4,11 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GeocacheSolution.Data;
 using GeocacheSolution.Models;
-using System.Text.RegularExpressions;
 
 namespace GeocacheSolution.Controllers
 {
@@ -30,7 +28,7 @@ namespace GeocacheSolution.Controllers
             return await _context.Items.ToListAsync();
         }
 
-        // GET: Items/Details/5
+        // GET: Items/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Item>> GetItem(int id)
         {
@@ -123,7 +121,7 @@ namespace GeocacheSolution.Controllers
             return Ok(item);
         }
 
-    // DELETE: Items/Delete/5
+    // DELETE: Items/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Item>> DeleteItem(int id)
         {
